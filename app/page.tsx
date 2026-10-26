@@ -1,18 +1,26 @@
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/session'
 import { BrandMark } from '@/components/brand-mark'
 import { Button } from '@/components/ui/button'
 
-export default async function HomePage() {
+async function RedirectIfSignedIn() {
   const session = await getSession()
   if (session) redirect('/app')
+  return null
+}
 
+export default function HomePage() {
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-3xl flex-col gap-12 px-5 py-8">
+      <Suspense fallback={null}>
+        <RedirectIfSignedIn />
+      </Suspense>
+
       <header className="flex items-center justify-between">
         <BrandMark />
-        <Button variant="ghost" render={<Link href="/auth/login" />}>
+        <Button variant="ghost" nativeButton={false} render={<Link href="/auth/login" />}>
           Ingresar
         </Button>
       </header>
@@ -26,10 +34,16 @@ export default async function HomePage() {
           la asistencia del día se actualiza al instante.
         </p>
         <div className="flex flex-wrap gap-3">
-          <Button size="lg" className="h-11 px-6" render={<Link href="/auth/sign-up" />}>
+          <Button size="lg" className="h-11 px-6" nativeButton={false} render={<Link href="/auth/sign-up" />}>
             Crear cuenta
           </Button>
-          <Button size="lg" variant="outline" className="h-11 px-6" render={<Link href="/auth/login" />}>
+          <Button
+            size="lg"
+            variant="outline"
+            className="h-11 px-6"
+            nativeButton={false}
+            render={<Link href="/auth/login" />}
+          >
             Ya tengo cuenta
           </Button>
         </div>
