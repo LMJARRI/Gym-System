@@ -1,7 +1,7 @@
 import { cache } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import type { AppRole, Gym, Profile } from '@/lib/domain'
+import { GYM_COLUMNS, PROFILE_COLUMNS, type AppRole, type Gym, type Profile } from '@/lib/domain'
 
 export const getSession = cache(async () => {
   const supabase = await createClient()
@@ -12,7 +12,7 @@ export const getSession = cache(async () => {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id, gym_id, role, full_name, avatar_url, member_number')
+    .select(PROFILE_COLUMNS)
     .eq('id', user.id)
     .maybeSingle<Profile>()
 
@@ -20,7 +20,7 @@ export const getSession = cache(async () => {
   if (profile?.gym_id) {
     const { data } = await supabase
       .from('gyms')
-      .select('id, name, timezone, join_code, qr_ttl_seconds, allow_pending_payment, pending_grace_days')
+      .select(GYM_COLUMNS)
       .eq('id', profile.gym_id)
       .maybeSingle<Gym>()
     gym = data
@@ -35,6 +35,7 @@ export async function requireMember(roles?: AppRole[]) {
   if (!session) redirect('/auth/login')
   const { profile, gym } = session
   if (!profile || !gym) redirect('/onboarding')
+  if (profile.account_status === 'inactive') redirect('/cuenta-inactiva')
   if (roles && !roles.includes(profile.role)) redirect('/app')
   return { ...session, profile, gym }
 }
