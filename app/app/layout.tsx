@@ -7,15 +7,21 @@ async function MemberShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <AppHeader role={profile.role} gymName={gym.name} userName={profile.full_name} />
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-6 md:px-6">{children}</main>
+      <AppHeader
+        role={profile.role}
+        gymName={gym.name}
+        userName={profile.full_name}
+        userId={profile.id}
+        teachersCanScan={gym.teachers_can_scan}
+      />
+      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6 md:px-6">{children}</main>
     </>
   )
 }
 
 function ShellFallback() {
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-6 md:px-6" aria-busy="true">
+    <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6 md:px-6" aria-busy="true">
       <span className="sr-only">Cargando…</span>
       <div className="h-10 w-48 animate-pulse rounded-md bg-muted" />
       <div className="h-48 animate-pulse rounded-lg bg-muted" />

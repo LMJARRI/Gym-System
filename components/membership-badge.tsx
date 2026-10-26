@@ -6,6 +6,7 @@ const TONE: Record<MembershipStatus, string> = {
   pending_payment: 'bg-primary/15 text-primary',
   suspended: 'bg-destructive/15 text-destructive',
   expired: 'bg-muted text-muted-foreground',
+  cancelled: 'bg-muted text-muted-foreground line-through',
 }
 
 export function MembershipBadge({ status }: { status: MembershipStatus }) {
