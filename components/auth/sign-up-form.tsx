@@ -8,18 +8,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
-function signUpErrorMessage(error: unknown): string {
-  const { code, status } = (error ?? {}) as { code?: string; status?: number }
-  if (code === 'weak_password') return 'La contraseña es muy débil. Usá al menos 8 caracteres.'
-  if (code === 'email_address_invalid') return 'Ingresá un email válido.'
-  if (code === 'over_email_send_rate_limit') {
-    return 'Se alcanzó el límite de emails de confirmación del servidor. Probá de nuevo en una hora.'
-  }
-  if (code === 'over_request_rate_limit' || status === 429) {
-    return 'Demasiados intentos. Esperá un momento.'
-  }
+function signUpErrorMessage(code: string | undefined): string {
+  if (code === 'weak_password') return 'La contraseña es muy débil. Usá entre 8 y 72 caracteres.'
+  if (code === 'invalid_email') return 'Ingresá un email válido.'
+  if (code === 'invalid_name') return 'Ingresá tu nombre y apellido.'
+  if (code === 'rate_limited') return 'Demasiados intentos. Esperá unos minutos.'
   // Never confirm whether the email is already registered.
-  if (code === 'user_already_exists' || code === 'email_exists') return 'No pudimos crear la cuenta con esos datos.'
+  if (code === 'cannot_create') return 'No pudimos crear la cuenta con esos datos. Si ya tenés cuenta, ingresá.'
   return 'Ocurrió un error inesperado. Intentá de nuevo.'
 }
 
@@ -38,20 +33,30 @@ export function SignUpForm() {
     }
     setIsLoading(true)
     setError(null)
-    const { error } = await createClient().auth.signUp({
-      email: String(form.get('email')),
-      password,
-      options: {
-        emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ?? `${window.location.origin}/auth/callback`,
-        data: { full_name: String(form.get('full_name')).trim().slice(0, 120) },
-      },
-    })
-    if (error) {
-      setError(signUpErrorMessage(error))
+    const email = String(form.get('email')).trim()
+    try {
+      const res = await fetch('/api/auth/sign-up', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, full_name: String(form.get('full_name')) }),
+      })
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string }
+        setError(signUpErrorMessage(data.error))
+        setIsLoading(false)
+        return
+      }
+      const { error: signInError } = await createClient().auth.signInWithPassword({ email, password })
+      if (signInError) {
+        router.push('/auth/login')
+        return
+      }
+      router.push('/onboarding')
+      router.refresh()
+    } catch {
+      setError(signUpErrorMessage(undefined))
       setIsLoading(false)
-      return
     }
-    router.push('/auth/sign-up-success')
   }
 
   return (
