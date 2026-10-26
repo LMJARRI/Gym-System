@@ -12,7 +12,10 @@ function signUpErrorMessage(error: unknown): string {
   const { code, status } = (error ?? {}) as { code?: string; status?: number }
   if (code === 'weak_password') return 'La contraseña es muy débil. Usá al menos 8 caracteres.'
   if (code === 'email_address_invalid') return 'Ingresá un email válido.'
-  if (code === 'over_email_send_rate_limit' || code === 'over_request_rate_limit' || status === 429) {
+  if (code === 'over_email_send_rate_limit') {
+    return 'Se alcanzó el límite de emails de confirmación del servidor. Probá de nuevo en una hora.'
+  }
+  if (code === 'over_request_rate_limit' || status === 429) {
     return 'Demasiados intentos. Esperá un momento.'
   }
   // Never confirm whether the email is already registered.
