@@ -174,14 +174,17 @@ Qué sigue sin estar verificado: el flujo completo contra Mercado Pago (preferen
 
 ---
 
-## Despliegue (Vercel + Supabase)
+## Ejecución local (sin Vercel)
 
 1. Creá un proyecto de Supabase y ejecutá `pnpm db:migrate` con `POSTGRES_URL_NON_POOLING`.
 2. En Supabase → Authentication → URL Configuration: poné la URL de producción como *Site URL* y agregá `https://TU-DOMINIO/auth/callback` y `https://TU-DOMINIO/auth/confirm` a las *Redirect URLs*.
 3. Configurá SMTP propio en Supabase (el SMTP por defecto tiene un límite muy bajo) para la recuperación de contraseña.
-4. Importá el repositorio en Vercel y cargá las variables de `.env.example`. `SUPABASE_SERVICE_ROLE_KEY` y `CRON_SECRET` solo como variables de servidor.
-5. `vercel.json` programa `/api/cron/notices` todos los días a las 09:00 UTC. Vercel envía `CRON_SECRET` como Bearer; sin ese secreto la ruta responde 401.
-6. Activá copias de seguridad en Supabase (plan Pro: backups diarios y PITR).
+4. Ejecutá `pnpm dev` y usá la aplicación en `http://localhost:3000`.
+5. Ejecutá `pnpm cron:notices` una vez por día desde el Programador de tareas de Windows o un cron externo. El comando llama a `/api/cron/notices` con `CRON_SECRET`.
+6. Para Mercado Pago en local, usá una URL HTTPS pública mediante un túnel y colocala en `NEXT_PUBLIC_SITE_URL`; Mercado Pago no puede llamar a `localhost`.
+7. Activá copias de seguridad en Supabase (plan Pro: backups diarios y PITR).
+
+El archivo `vercel.json` es opcional y solo configura el cron si más adelante se usa Vercel. La aplicación, las APIs y Supabase no dependen de Vercel.
 
 ### Revocar el acceso de una persona
 Configuración → Miembros → desactivar la cuenta (`account_status = inactive`). Las pantallas la redirigen a "cuenta inactiva" y no puede registrar ni consultar nada. Para eliminar la sesión por completo, borrá o bloqueá el usuario desde Supabase → Authentication.
