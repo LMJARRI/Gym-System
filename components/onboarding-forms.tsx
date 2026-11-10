@@ -13,6 +13,9 @@ const ERRORS: Record<string, string> = {
   invalid_code: 'Ese código no corresponde a ningún gimnasio.',
   already_in_gym: 'Tu cuenta ya pertenece a un gimnasio.',
   invalid_timezone: 'Elegí una zona horaria válida.',
+  'Could not find the function public.create_gym': 'La base de datos no está inicializada. Ejecutá las migraciones de Supabase.',
+  'Could not find the function public.join_gym': 'La base de datos no está inicializada. Ejecutá las migraciones de Supabase.',
+  'relation "public.profiles" does not exist': 'La base de datos no está inicializada. Ejecutá las migraciones de Supabase.',
 }
 
 function rpcError(message: string) {
@@ -28,14 +31,20 @@ export function OnboardingForms() {
   async function run(call: () => PromiseLike<{ error: { message: string } | null }>) {
     setPending(true)
     setError(null)
-    const { error } = await call()
-    if (error) {
-      setError(rpcError(error.message))
+    try {
+      const { error } = await call()
+      if (error) {
+        setError(rpcError(error.message))
+        return
+      }
+      router.replace('/app')
+      router.refresh()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      setError(rpcError(message))
+    } finally {
       setPending(false)
-      return
     }
-    router.replace('/app')
-    router.refresh()
   }
 
   return (

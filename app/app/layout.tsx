@@ -1,8 +1,10 @@
 import { Suspense } from 'react'
+import { connection } from 'next/server'
 import { requireMember } from '@/lib/session'
 import { AppHeader } from '@/components/app-header'
 
 async function MemberShell({ children }: { children: React.ReactNode }) {
+  await connection()
   const { profile, gym } = await requireMember()
 
   return (
